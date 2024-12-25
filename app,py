@@ -1,0 +1,68 @@
+from flask import Flask, request, jsonify
+import googleapiclient.discovery
+import pandas as pd
+import PIL
+app = Flask(__name__)
+
+# YouTube API Configuration
+api_service_name = "youtube"
+api_version = "v3"
+DEVELOPER_KEY = "AIzaSyCzR9SfwFVQBpY6PxHmnNdm05U6nlDRuxk"
+
+youtube = googleapiclient.discovery.build(
+    api_service_name, api_version, developerKey=DEVELOPER_KEY
+)
+
+# Function to fetch all comments
+def fetch_comments(video_id):
+    comments = []
+    next_page_token = None
+
+    while True:
+        request = youtube.commentThreads().list(
+            part="snippet",
+            videoId=video_id,
+            maxResults=100,  # Maximum allowed value
+            pageToken=next_page_token,
+        )
+        response = request.execute()
+
+        # Append comments from the current page
+        for item in response["items"]:
+            comment = item["snippet"]["topLevelComment"]["snippet"]["textDisplay"]
+            comments.append(comment)
+
+        # Check if there's another page
+        next_page_token = response.get("nextPageToken")
+        if not next_page_token:
+            break
+
+    return comments
+
+
+def analyze(data):
+    pass
+
+# API Endpoint to fetch comments
+@app.route("/fetch-comments")
+def get_comments():
+    data = request.get_json()
+    video_id = data.get("videoId")
+
+    if not video_id:
+        return jsonify({"error": "Missing video ID"}), 400
+
+    # Fetch comments using the YouTube API
+    comments = fetch_comments(video_id)
+
+    # Convert comments to a DataFrame
+    comments_df = pd.DataFrame(comments, columns=["Comment"])
+
+
+    img,result=analyze(comments_df)
+    print(comments_df.head())  # For debugging purposes
+
+    return jsonify({"comments": comments, "count": len(comments)})
+
+if __name__ == "__main__":
+    app.run(debug=True)
