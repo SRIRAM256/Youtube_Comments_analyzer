@@ -1,0 +1,10 @@
+flask
+google-api-python-client
+nltk
+pandas
+scikit-learn
+lightgbm
+Pillow
+matplotlib
+regex
+flask-cors

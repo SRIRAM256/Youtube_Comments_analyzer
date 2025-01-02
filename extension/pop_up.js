@@ -19,10 +19,16 @@ document.getElementById("analyzeButton").addEventListener("click", function () {
       },
       body: JSON.stringify({ videoId: videoId }),
     })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Comments fetched:", data.comments.length);
-        alert(`Fetched ${data.comments.length} comments!`);
+    .then((data) => {
+        const piechart=document.createElement('img');
+        piechart.src="http://127.0.0.1:5000/fetch-comments";
+        piechart.alt="Pie Chart";
+        piechart.width="500";
+        piechart.height="500";
+
+        console.log("piechart recieved");
+        const res=document.getElementById('result');
+        res.appendChild(piechart);
       })
       .catch((error) => {
         console.error("Error fetching comments:", error);
