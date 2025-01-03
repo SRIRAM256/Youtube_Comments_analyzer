@@ -8,6 +8,8 @@ import pandas as pd
 import pickle as pkl
 from PIL import Image
 import matplotlib.pyplot as plt
+from dotenv import load_dotenv
+import os
 import re
 import io
 
@@ -16,13 +18,13 @@ nltk.download('wordnet')
 nltk.download('punkt')
 
 
-
+load_dotenv()
 app = Flask(__name__)
 CORS(app)
 # YouTube API Configuration
 api_service_name = "youtube"
 api_version = "v3"
-DEVELOPER_KEY = "AIzaSyCzR9SfwFVQBpY6PxHmnNdm05U6nlDRuxk"
+DEVELOPER_KEY = os.getenv("DEVELOPER_KEY")
 
 youtube = googleapiclient.discovery.build(
     api_service_name, api_version, developerKey=DEVELOPER_KEY
@@ -72,8 +74,8 @@ def analyze(data):
     data["Comment"]=data["Comment"].apply(clean_text)
 
     # model loading 
-    vector=pkl.load(open("vectorizer.pkl","rb"))
-    model=pkl.load(open("light_gbm_model.pkl","rb"))
+    vector=pkl.load(open("model/vectorizer.pkl","rb"))
+    model=pkl.load(open("model/light_gbm_model.pkl","rb"))
 
     # testing 
     x_test=vector.transform(data["Comment"])
@@ -97,29 +99,24 @@ def analyze(data):
     
     return img
 
-
-
-# API Endpoint to fetch comments
-@app.route("/fetch-comments")
-def get_comments():
-    data = request.get_json()
-    video_id = data.get("videoId")
-
-    if not video_id:
-        return jsonify({"error": "Missing video ID"}), 400
-
-    # Fetch comments using the YouTube API
-    comments = fetch_comments(video_id)
-
-    # Convert comments to a DataFrame
-    comments_df = pd.DataFrame(comments, columns=["Comment"])
-    img=analyze(comments_df)
+@app.route('/analyze/<video_id>', methods=['GET', 'POST'])
+def analyze_video(video_id):
     try:
+        # Fetch comments using the YouTube API
+        comments = fetch_comments(video_id)
+
+        # Convert comments to a DataFrame
+        comments_df = pd.DataFrame(comments, columns=["Comment"])
+
+        # Analyze comments and generate image
+        img = analyze(comments_df)
+
         return send_file(img, mimetype='image/png')
 
     except Exception as e:  # Handle potential errors properly
         print(f"Error: {e}")
-        return jsonify({'error': str(e)}), 500  # Return an error response
+        return jsonify({'error': str(e)}), 500
+    
 
 if __name__ == "__main__":
     app.run(debug=True)
