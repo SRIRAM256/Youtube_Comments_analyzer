@@ -3,14 +3,12 @@
     "name": "YouTube Comment Analyzer",
     "description": "Analyze YouTube comments using a Flask backend.",
     "version": "1.0",
-    "permissions": ["tabs", "storage", "activeTab", "http://127.0.0.1:5000/"],
-    "host_permissions": ["https://www.googleapis.com/*"],
+    "permissions": ["tabs", "storage", "activeTab"],
+    "host_permissions": ["https://www.googleapis.com/*","http://127.0.0.1:5000/"],
     "action": {
       "default_popup": "popup.html",
       "default_icon": {
-        "16": "images/icon16.png",
-        "48": "images/icon48.png",
-        "128": "images/icon128.png"
+        "16": "images/icon.png"
       }
     },
     "content_scripts": [
